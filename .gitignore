@@ -10,3 +10,5 @@ prisma/dev.db-journal
 *.tsbuildinfo
 .next-dev.log
 AppABA/
+
+.vercel
