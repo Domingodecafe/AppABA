@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Learner {
+  id           String            @id @default(cuid())
+  name         String
+  birthDate    DateTime?
+  supportLevel String
+  notes        String?
+  active       Boolean           @default(true)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  programs     TrainingProgram[]
+  sessions     Session[]
+  trials       TrialResult[]
+}
+
+model Stimulus {
+  id                  String             @id @default(cuid())
+  name                String
+  category            String?
+  className           String?
+  functionText        String?
+  characteristics     String?
+  imageUrl            String?
+  notes               String?
+  active              Boolean            @default(true)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  targetPrograms      TrainingProgram[]  @relation("ProgramTarget")
+  targetTrials        TrialResult[]      @relation("TrialTarget")
+  selectedTrials      TrialResult[]      @relation("TrialSelected")
+  sourceRelations     StimulusRelation[] @relation("RelationSource")
+  targetRelations     StimulusRelation[] @relation("RelationTarget")
+}
+
+model StimulusRelation {
+  id               String   @id @default(cuid())
+  type             String
+  sourceStimulusId String
+  targetStimulusId String
+  notes            String?
+  createdAt        DateTime @default(now())
+  sourceStimulus   Stimulus @relation("RelationSource", fields: [sourceStimulusId], references: [id])
+  targetStimulus   Stimulus @relation("RelationTarget", fields: [targetStimulusId], references: [id])
+}
+
+model TrainingProgram {
+  id                     String        @id @default(cuid())
+  learnerId              String
+  name                   String
+  type                   String
+  relationType           String
+  instruction            String
+  fieldSize              Int
+  trialLimit             Int?
+  targetStimulusId       String
+  distractorStimulusIds  Json
+  responseMode           String        @default("tocar")
+  randomizePositions     Boolean       @default(true)
+  avoidSamePositionTwice Boolean       @default(true)
+  masteryCriterion       String?
+  active                 Boolean       @default(true)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+  learner                Learner       @relation(fields: [learnerId], references: [id])
+  targetStimulus         Stimulus      @relation("ProgramTarget", fields: [targetStimulusId], references: [id])
+  sessions               Session[]
+  trials                 TrialResult[]
+}
+
+model Session {
+  id                String          @id @default(cuid())
+  learnerId         String
+  trainingProgramId String
+  startedAt         DateTime        @default(now())
+  endedAt           DateTime?
+  notes             String?
+  learner           Learner         @relation(fields: [learnerId], references: [id])
+  trainingProgram   TrainingProgram @relation(fields: [trainingProgramId], references: [id])
+  trials            TrialResult[]
+}
+
+model TrialResult {
+  id                   String          @id @default(cuid())
+  sessionId            String
+  learnerId            String
+  trainingProgramId    String
+  targetStimulusId     String
+  selectedStimulusId   String
+  presentedStimulusIds Json
+  correct              Boolean
+  promptLevel          String
+  latencyMs            Int
+  notes                String?
+  createdAt            DateTime        @default(now())
+  session              Session         @relation(fields: [sessionId], references: [id])
+  trainingProgram      TrainingProgram @relation(fields: [trainingProgramId], references: [id])
+  learner              Learner         @relation(fields: [learnerId], references: [id])
+  targetStimulus       Stimulus        @relation("TrialTarget", fields: [targetStimulusId], references: [id])
+  selectedStimulus     Stimulus        @relation("TrialSelected", fields: [selectedStimulusId], references: [id])
+}
