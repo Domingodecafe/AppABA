@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { jsonStringArray } from "@/lib/training/adapters";
 import { relationTypes, trainingTypes } from "@/lib/training/options";
 
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   params: Promise<{ programId: string }>;
 };

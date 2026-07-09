@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { jsonStringArray } from "@/lib/training/adapters";
 import { relationTypes, trainingTypes } from "@/lib/training/options";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProgramsPage() {
   const [learners, stimuli, programs] = await Promise.all([
     prisma.learner.findMany({ where: { active: true }, orderBy: { name: "asc" } }),

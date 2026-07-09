@@ -1,6 +1,8 @@
 import { createStimulus } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function StimuliPage() {
   const stimuli = await prisma.stimulus.findMany({
     orderBy: [{ active: "desc" }, { name: "asc" }]

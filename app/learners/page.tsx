@@ -1,6 +1,8 @@
 import { createLearner } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function LearnersPage() {
   const learners = await prisma.learner.findMany({
     orderBy: { createdAt: "desc" }

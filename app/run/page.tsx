@@ -1,6 +1,8 @@
 import { startSession } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export default async function RunPage() {
   const [learners, programs] = await Promise.all([
     prisma.learner.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
