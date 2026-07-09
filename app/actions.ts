@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { parseLearnerForm } from "@/lib/learners/form";
+import { parseStimulusForm } from "@/lib/stimuli/form";
 import { gradeSelection } from "@/lib/training/engine";
 
 export async function createLearner(formData: FormData) {
@@ -29,20 +30,23 @@ export async function updateLearner(learnerId: string, formData: FormData) {
 
 export async function createStimulus(formData: FormData) {
   await prisma.stimulus.create({
-    data: {
-      name: requiredString(formData, "name"),
-      category: optionalString(formData.get("category")),
-      className: optionalString(formData.get("className")),
-      functionText: optionalString(formData.get("functionText")),
-      characteristics: optionalString(formData.get("characteristics")),
-      imageUrl: optionalString(formData.get("imageUrl")),
-      notes: optionalString(formData.get("notes")),
-      active: formData.get("active") !== "inactive"
-    }
+    data: parseStimulusForm(formData)
   });
 
   revalidatePath("/");
   revalidatePath("/stimuli");
+}
+
+export async function updateStimulus(stimulusId: string, formData: FormData) {
+  await prisma.stimulus.update({
+    where: { id: stimulusId },
+    data: parseStimulusForm(formData)
+  });
+
+  revalidatePath("/");
+  revalidatePath("/stimuli");
+  revalidatePath(`/stimuli/${stimulusId}/edit`);
+  redirect("/stimuli");
 }
 
 export async function createTrainingProgram(formData: FormData) {

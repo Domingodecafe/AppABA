@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createStimulus } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 
@@ -75,7 +76,12 @@ export default async function StimuliPage() {
             <div className="grid gap-2 p-4">
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xl font-bold">{stimulus.name}</h2>
-                <span className="pill">{stimulus.active ? "Ativo" : "Inativo"}</span>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <span className="pill">{stimulus.active ? "Ativo" : "Inativo"}</span>
+                  <Link href={`/stimuli/${stimulus.id}/edit`} className="btn secondary min-h-0 px-3 py-2 text-sm">
+                    Editar
+                  </Link>
+                </div>
               </div>
               <p className="text-sm text-[#56635b]">
                 {stimulus.category ?? "sem categoria"} · {stimulus.className ?? "sem classe"}
