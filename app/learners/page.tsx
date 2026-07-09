@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createLearner } from "@/app/actions";
 import { prisma } from "@/lib/prisma";
 
@@ -62,6 +63,7 @@ export default async function LearnersPage() {
               <th>Suporte</th>
               <th>Status</th>
               <th>Observações</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -71,6 +73,11 @@ export default async function LearnersPage() {
                 <td>{learner.supportLevel}</td>
                 <td>{learner.active ? "Ativo" : "Inativo"}</td>
                 <td>{learner.notes ?? "Sem observações"}</td>
+                <td>
+                  <Link href={`/learners/${learner.id}/edit`} className="btn secondary min-h-0 px-3 py-2 text-sm">
+                    Editar
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>

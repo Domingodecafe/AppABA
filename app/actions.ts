@@ -3,21 +3,28 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { parseLearnerForm } from "@/lib/learners/form";
 import { gradeSelection } from "@/lib/training/engine";
 
 export async function createLearner(formData: FormData) {
   await prisma.learner.create({
-    data: {
-      name: requiredString(formData, "name"),
-      birthDate: optionalDate(formData.get("birthDate")),
-      supportLevel: requiredString(formData, "supportLevel"),
-      notes: optionalString(formData.get("notes")),
-      active: formData.get("active") !== "inactive"
-    }
+    data: parseLearnerForm(formData)
   });
 
   revalidatePath("/");
   revalidatePath("/learners");
+}
+
+export async function updateLearner(learnerId: string, formData: FormData) {
+  await prisma.learner.update({
+    where: { id: learnerId },
+    data: parseLearnerForm(formData)
+  });
+
+  revalidatePath("/");
+  revalidatePath("/learners");
+  revalidatePath(`/learners/${learnerId}/edit`);
+  redirect("/learners");
 }
 
 export async function createStimulus(formData: FormData) {
@@ -156,16 +163,6 @@ function optionalString(value: FormDataEntryValue | null): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function optionalDate(value: FormDataEntryValue | null): Date | undefined {
-  const date = optionalString(value);
-
-  if (!date) {
-    return undefined;
-  }
-
-  return new Date(`${date}T00:00:00`);
 }
 
 function optionalPositiveNumber(value: FormDataEntryValue | null): number | undefined {
