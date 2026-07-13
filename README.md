@@ -9,6 +9,7 @@ Este app é uma ferramenta de apoio clínico/educacional. Ele não realiza diagn
 - Next.js + TypeScript + App Router
 - Prisma
 - SQLite no MVP
+- Supabase Storage para imagens da biblioteca
 - Tailwind CSS
 - Vitest para testes do motor de treino
 
@@ -35,6 +36,18 @@ npm run dev
 ```
 
 Depois abra `http://localhost:3000`.
+
+## Imagens com Supabase
+
+A biblioteca de estímulos aceita URL manual ou upload de imagem. Para upload, configure:
+
+```bash
+SUPABASE_URL="https://acpfzhdswmwyaurhixxt.supabase.co"
+SUPABASE_PUBLISHABLE_KEY="sua-chave-publicavel"
+SUPABASE_STORAGE_BUCKET="appaba-stimuli"
+```
+
+O bucket `appaba-stimuli` deve estar público e aceitar upload de imagens.
 
 ## Fluxo do MVP
 

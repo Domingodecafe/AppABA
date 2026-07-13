@@ -18,7 +18,7 @@ export default async function StimuliPage() {
 
       <section className="surface p-5">
         <h2 className="mb-4 text-xl font-bold">Novo estímulo</h2>
-        <form action={createStimulus} className="grid gap-4">
+        <form action={createStimulus} className="grid gap-4" encType="multipart/form-data">
           <div className="form-grid">
             <label>
               Nome do estímulo
@@ -43,6 +43,10 @@ export default async function StimuliPage() {
             <label>
               Imagem
               <input name="imageUrl" placeholder="https://... ou /imagens/item.png" />
+            </label>
+            <label>
+              Upload da imagem
+              <input name="imageFile" type="file" accept="image/*" />
             </label>
             <label>
               Status

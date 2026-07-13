@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { parseLearnerForm } from "@/lib/learners/form";
 import { parseStimulusForm } from "@/lib/stimuli/form";
+import { uploadStimulusImage } from "@/lib/stimuli/storage";
 import { gradeSelection } from "@/lib/training/engine";
 
 export async function createLearner(formData: FormData) {
@@ -29,8 +30,14 @@ export async function updateLearner(learnerId: string, formData: FormData) {
 }
 
 export async function createStimulus(formData: FormData) {
+  const uploadedImageUrl = await uploadStimulusImage(formData.get("imageFile"));
+  const stimulusData = parseStimulusForm(formData);
+
   await prisma.stimulus.create({
-    data: parseStimulusForm(formData)
+    data: {
+      ...stimulusData,
+      imageUrl: uploadedImageUrl ?? stimulusData.imageUrl
+    }
   });
 
   revalidatePath("/");
@@ -38,9 +45,15 @@ export async function createStimulus(formData: FormData) {
 }
 
 export async function updateStimulus(stimulusId: string, formData: FormData) {
+  const uploadedImageUrl = await uploadStimulusImage(formData.get("imageFile"));
+  const stimulusData = parseStimulusForm(formData);
+
   await prisma.stimulus.update({
     where: { id: stimulusId },
-    data: parseStimulusForm(formData)
+    data: {
+      ...stimulusData,
+      imageUrl: uploadedImageUrl ?? stimulusData.imageUrl
+    }
   });
 
   revalidatePath("/");

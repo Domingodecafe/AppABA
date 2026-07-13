@@ -29,7 +29,7 @@ export default async function EditStimulusPage({ params }: PageProps) {
       </section>
 
       <section className="surface p-5">
-        <form action={saveStimulus} className="grid gap-4">
+        <form action={saveStimulus} className="grid gap-4" encType="multipart/form-data">
           <div className="form-grid">
             <label>
               Nome do estímulo
@@ -54,6 +54,10 @@ export default async function EditStimulusPage({ params }: PageProps) {
             <label>
               Imagem
               <input name="imageUrl" defaultValue={stimulus.imageUrl ?? ""} placeholder="https://... ou /imagens/item.png" />
+            </label>
+            <label>
+              Upload da imagem
+              <input name="imageFile" type="file" accept="image/*" />
             </label>
             <label>
               Status
