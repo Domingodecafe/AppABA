@@ -7,6 +7,7 @@ import { parseLearnerForm } from "@/lib/learners/form";
 import { parseStimulusForm } from "@/lib/stimuli/form";
 import { uploadStimulusImage } from "@/lib/stimuli/storage";
 import { gradeSelection } from "@/lib/training/engine";
+import { isPrismaForeignKeyError, trialFormMatchesSession } from "@/lib/trials/validation";
 
 export async function createLearner(formData: FormData) {
   await prisma.learner.create({
@@ -108,30 +109,75 @@ export async function recordTrialResult(formData: FormData) {
   const presentedStimulusIds = JSON.parse(requiredString(formData, "presentedStimulusIds")) as string[];
   const correct = gradeSelection(selectedStimulusId, targetStimulusId);
 
-  await prisma.trialResult.create({
-    data: {
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    select: {
+      id: true,
+      learnerId: true,
+      trainingProgramId: true,
+      endedAt: true,
+      trainingProgram: {
+        select: {
+          targetStimulusId: true,
+          trialLimit: true
+        }
+      }
+    }
+  });
+
+  if (
+    !session ||
+    !trialFormMatchesSession(session, {
       sessionId,
       learnerId,
       trainingProgramId,
       targetStimulusId,
       selectedStimulusId,
-      presentedStimulusIds,
-      correct,
-      promptLevel: requiredString(formData, "promptLevel"),
-      latencyMs: Math.max(0, Date.now() - startedAtMs),
-      notes: optionalString(formData.get("notes"))
+      presentedStimulusIds
+    })
+  ) {
+    redirect("/run?error=session-expired");
+  }
+
+  const referencedStimulusIds = Array.from(new Set([targetStimulusId, selectedStimulusId, ...presentedStimulusIds]));
+  const referencedStimulusCount = await prisma.stimulus.count({
+    where: {
+      id: {
+        in: referencedStimulusIds
+      }
     }
   });
 
-  const [completedTrials, program] = await Promise.all([
-    prisma.trialResult.count({ where: { sessionId } }),
-    prisma.trainingProgram.findUnique({
-      where: { id: trainingProgramId },
-      select: { trialLimit: true }
-    })
-  ]);
+  if (referencedStimulusCount !== referencedStimulusIds.length) {
+    redirect("/run?error=session-expired");
+  }
 
-  if (program?.trialLimit && completedTrials >= program.trialLimit) {
+  try {
+    await prisma.trialResult.create({
+      data: {
+        sessionId,
+        learnerId,
+        trainingProgramId,
+        targetStimulusId,
+        selectedStimulusId,
+        presentedStimulusIds,
+        correct,
+        promptLevel: requiredString(formData, "promptLevel"),
+        latencyMs: Math.max(0, Date.now() - startedAtMs),
+        notes: optionalString(formData.get("notes"))
+      }
+    });
+  } catch (error) {
+    if (isPrismaForeignKeyError(error)) {
+      redirect("/run?error=session-expired");
+    }
+
+    throw error;
+  }
+
+  const completedTrials = await prisma.trialResult.count({ where: { sessionId } });
+
+  if (session.trainingProgram.trialLimit && completedTrials >= session.trainingProgram.trialLimit) {
     await prisma.session.update({
       where: { id: sessionId },
       data: { endedAt: new Date() }

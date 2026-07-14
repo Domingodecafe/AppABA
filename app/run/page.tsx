@@ -3,7 +3,12 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-export default async function RunPage() {
+type PageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+export default async function RunPage({ searchParams }: PageProps) {
+  const { error } = await searchParams;
   const [learners, programs] = await Promise.all([
     prisma.learner.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
     prisma.trainingProgram.findMany({
@@ -19,6 +24,16 @@ export default async function RunPage() {
         <h1>Executar treino</h1>
         <p>Escolha a criança e um treino ativo. A próxima tela é otimizada para tablet e baixa distração.</p>
       </section>
+
+      {error === "session-expired" ? (
+        <section className="surface border-[#b84f43] bg-[#fbe7e2] p-4">
+          <h2 className="text-lg font-bold">Sessão reiniciada</h2>
+          <p className="text-sm text-[#56635b]">
+            A sessão anterior não estava mais disponível no servidor. Inicie o treino novamente para continuar sem
+            perder a estabilidade da tela.
+          </p>
+        </section>
+      ) : null}
 
       <section className="surface p-5">
         <form action={startSession} className="grid gap-4">
